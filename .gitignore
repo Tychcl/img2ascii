@@ -1,3 +1,7 @@
-/Result/*
+/Result/*.txt
+/Result/*.bmp
+/Result/*.jpg
+/Result/*.png
+/Result/*.jpeg
 /__pycache__
 /.venv
