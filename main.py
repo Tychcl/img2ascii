@@ -1,4 +1,3 @@
-import tkinter as tk
 from tkinter import filedialog
 from functions.convert import ConvertImage
 

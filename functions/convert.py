@@ -1,12 +1,16 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
 
+global OriginalImage, ResizedImage, GrayScaleImage, FileInfo
+global CharSet, Background, Foreground
+
+CharSet = " .:coP0?@■"
 FontRatioX = {"cour.ttf":1 , "consolas.ttf":0.80108695652}
 CharSize = {"x" : 8, "y" : 8} #8x8
-OriginalCharSet = " .:coP0?@■"
+
 RatioY = 6 / 13 #ширина / высота
 RatioX = 13 / 6 #Высота / Ширина
-dv = 255 / (len(OriginalCharSet)-1)
+dv = 255 / (len(CharSet)-1)
 
 def Image2Mono(Path2Img: str, Resize: bool = True, Size: tuple = None):
     Img = Image.open(Path2Img).convert("L")
@@ -51,10 +55,10 @@ def ConvertImage(Path2Img: str, Resize: bool = True, Size: tuple = None, ColorIn
     File = Path2Img.split("/")[-1].split(".")
     FileInfo = {"Name" : File[0], "Format" : File[1]}
     Invert = -1 if not SymbolsInvert else 1
-    CharSet = OriginalCharSet[::Invert]
+    CharSet = CharSet[::Invert]
     Img = Image2Mono(Path2Img, Resize, Size)
     AsciiStr = Image2Ascii(Img, CharSet)
-    txt = f"Result/{FileInfo["Name"]}.txt"
+    txt = f"Result/{FileInfo["Name"]}/{FileInfo["Name"]}.txt"
     with open(txt, "w", encoding="utf-8") as f:
         f.write(AsciiStr)
     print(f"txt: {os.path.abspath(txt)}")

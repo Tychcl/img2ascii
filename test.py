@@ -1,25 +1,13 @@
-from PIL import Image
-import tkinter as tk
-from tkinter import filedialog
+from PIL import Image, ImageDraw, ImageFont
+import os
 
-root = tk.Tk()
-root.withdraw()
-file = filedialog.askopenfilename(filetypes = (("Images",("*.png","*.bmp","*.jpg","*.jpeg")),
-                                                   ("PNG","*.png"),("BMP","*.bmp"),
-                                                   ("JPG","*.jpg"),("JPEG","*.jpeg")))
+global OriginalImage, ResizedImage, GrayScaleImage, FileInfo
+global CharSet, Background, Foreground
 
-img = Image.open(file)
-print(img.width, img.height)
-resized = img.resize((round(img.width/8), round(img.height/8)))
-resized.save("r.jpg")
+CharSet = " .:coP0?@■"
+FontRatioX = {"cour.ttf":1 , "consolas.ttf":0.80108695652}
+CharSize = {"x" : 8, "y" : 8}
 
-img/  
-├── src/  
-│   ├── utils/  
-│   │   ├── file_utils.py  
-│   │   └── math_utils.py  
-│   └── core/  
-│       ├── api.py  
-│       └── db.py  
-├── tests/  
-└── README.md  
+RatioY = 6 / 13 #ширина / высота
+RatioX = 13 / 6 #Высота / Ширина
+dv = 255 / (len(CharSet)-1)
