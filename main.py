@@ -1,5 +1,5 @@
 from tkinter import filedialog
-from functions.convert import ConvertImage
+from test import ConvertImage
 
 def OFD() -> str:
     return filedialog.askopenfilename(
@@ -9,4 +9,4 @@ def OFD() -> str:
 
 if __name__ == "__main__":
     file = OFD()
-    ConvertImage(Path2Img=file)
+    ConvertImage(Path2Image=file)
