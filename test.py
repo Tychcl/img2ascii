@@ -57,4 +57,4 @@ def convert_image(path2image: str,
     with open(txt, "w", encoding="utf-8") as f:
         f.write("\n".join(ascii_txt))
     print(f"txt: {os.path.abspath(txt)}")
-    print(f"img: {ascii2image_monochrome(ascii_img, color_invert)}")
+    print(f"img: {ascii2image_monochrome(ascii_img, color_invert)}")f
