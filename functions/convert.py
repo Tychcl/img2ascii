@@ -1,4 +1,5 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
+from functions.filter import mega_sobel, sobel
 import os
 
 global FileInfo,CharSet
@@ -11,7 +12,8 @@ RatioY = 7/14
 CharSize = {"x" : 8, "y" : 8} #хранит размер символа по х и у
 
 def resize_image(image: Image, size: tuple) -> Image:
-    return image.resize(size, Image.LANCZOS), image.resize((round(size[0] * RatioX), size[1]), Image.LANCZOS)
+    x,y = size
+    return image.resize(size, Image.LANCZOS), image.resize((round(x * RatioX), y), Image.LANCZOS)
     
 def mono_image(resized_image: Image) -> Image:
     return resized_image.convert("L")
@@ -29,7 +31,6 @@ def ascii_image(gray_scale_image: Image) -> list[str]:
 def ascii2image_monochrome(ascii_list: list[str], color_invert: bool) -> str | None:
     width = max(len(line) for line in ascii_list)
     height = len(ascii_list)
-    print( width, height)
 
 def convert_image(path2image: str,
                   color_invert: bool = False, char_set_invert: bool = False,
@@ -43,10 +44,11 @@ def convert_image(path2image: str,
     CharSet = CharSet[::-1 if not char_set_invert else 1]
 
     image: Image = Image.open(path2image)
+    sobel(path2image)
     if size is None:
         size = (round(image.width / CharSize["x"]), round(image.height / CharSize["y"]))
 
-    resized_img, resized_txt = resize_image(image, size)
+    resized_img, resized_txt= resize_image(image, size)
     gray_scale_img: Image = mono_image(resized_img)
     gray_scale_txt: Image = mono_image(resized_txt)
     ascii_img: list[str] = ascii_image(gray_scale_img)
@@ -57,4 +59,4 @@ def convert_image(path2image: str,
     with open(txt, "w", encoding="utf-8") as f:
         f.write("\n".join(ascii_txt))
     print(f"txt: {os.path.abspath(txt)}")
-    print(f"img: {ascii2image_monochrome(ascii_img, color_invert)}")f
+    print(f"img: {ascii2image_monochrome(ascii_img, color_invert)}")
