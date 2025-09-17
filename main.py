@@ -1,6 +1,7 @@
 from tkinter import filedialog
 from functions.convert import convert_image
 from functions.new import convert
+import os
 
 
 def OFD() -> str:
@@ -11,4 +12,5 @@ def OFD() -> str:
 
 if __name__ == "__main__":
     file = OFD()
-    print(convert(path=file))
+    print(os.path.splitext(file))
+    #print(convert(path=file))

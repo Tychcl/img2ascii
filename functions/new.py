@@ -91,7 +91,7 @@ def convert(path:str,
     Returns:
         tuple[str]: Paths to saved img or txt file, if not saved path is None"""
     #Обработка, чтобы просто так не выполнять действия, если ничего не надо
-    if not txt_need and not img_need:
+    if not txt_need and not img_need or not os.path.exists(path):
         return None
 
     global file_info
@@ -103,7 +103,7 @@ def convert(path:str,
 
     original_image: Image = Image.open(path).convert("L")
 
-    x_size, y_size = image.size
+    x_size, y_size = original_image.size
     x_size = round(x_size / char_size["x"])
     y_size = round(y_size / char_size["y"])
 
@@ -126,4 +126,3 @@ def convert(path:str,
         final_img_path = os.path.abspath(save)
 
     return (final_txt_path, final_img_path)
-    
