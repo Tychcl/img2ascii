@@ -4,7 +4,8 @@ import os
 
 global FileInfo,CharSet
 FileInfo: dict
-CharSet: str = " .:coP0?@■"
+#строка изначально перевернута из за того, что так результат выглядит лучше " .:coP0?@■"
+CharSet: str = "■@?0Poc:. "  
 
 RatioX = 14/7
 RatioY = 7/14
