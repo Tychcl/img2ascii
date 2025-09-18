@@ -83,7 +83,7 @@ def convert(path:str,
     Args:
         path (str): Path to img file
         color_invert (bool): Inverts order of char list for img ascii. White color of img will turn black on final img if True
-        chars_invert (bool): Inverts order of char list for txt ascii. White color of img will turn ' ' if True
+        chars_invert (bool): Inverts order of char list for txt ascii. White color of img will turn '■' if True
         txt_need (bool): Convert img to txt ascii if True
         img_need (bool): Convert img to img ascii if True
         use_y_ratio (bool): used X ratio if False, then txt is bigger, else txt is smaller
@@ -99,13 +99,15 @@ def convert(path:str,
     final_txt_path: str = None
 
     file_info["path"] = path
-    file_info["name"], file_info["extension"] = os.path.splitext(path)
+    file_info["name"], file_info["extension"] = os.path.splitext(os.path.basename(path))
 
     original_image: Image = Image.open(path).convert("L")
 
     x_size, y_size = original_image.size
     x_size = round(x_size / char_size["x"])
     y_size = round(y_size / char_size["y"])
+
+    os.makedirs(f"result/{file_info["name"]}", exist_ok=True)
 
     if txt_need:
         size:tuple =(x_size, round(y_size * char_ratio["y"])) if use_y_ratio else (round(x_size * char_ratio["x"]), y_size)
