@@ -1,6 +1,7 @@
 from tkinter import filedialog
-from functions.ascii import convert
-
+from functions.ascii import convert, img_char_set
+from PIL import Image, ImageOps
+import numpy as np
 
 def OFD() -> str:
     return filedialog.askopenfilename(
@@ -10,4 +11,4 @@ def OFD() -> str:
 
 if __name__ == "__main__":
     file = OFD()
-    print(convert(path=file, color_invert=True))
+    print(convert(path=file, color_invert=True, color=True, fix_color=True))

@@ -1,6 +1,7 @@
 from PIL import Image, ImageOps
 import numpy as np
 import os
+from functions.filter import mega_sobel
 #Если вы будете изменять символы или менять из размер
 #То для начала убедитесь, что вы изменили картинку в ресурсах
 
@@ -18,7 +19,7 @@ for i in range(len(txt_char_set)):
     left = i * char_size["x"]
     right = left + char_size["x"]
     img_char = chars_img.crop((left, 0, right, char_size["y"]))
-    img_char_set.append(img_char)
+    img_char_set.append(img_char.convert("L"))
 
 def image_resize(image: Image, size: tuple) -> Image:
     """Resize img.
@@ -33,7 +34,7 @@ def image_luminance(image: Image) -> list[list[int]]:
         image (Image): brightness map from image
     Returns:
         list[list[int]]: brightness map"""
-    img_array = np.array(image)
+    img_array = np.array(image.convert("L"))
     result = np.round(img_array / divine).astype(int)
     return result.tolist()
 
@@ -53,6 +54,30 @@ def img_ascii(map: list[list[int]], color_invert: bool) -> Image:
         for x in range(x_size):
             x_paste = x * char_size["x"]
             final_image.paste(char_set[map[y][x]], (x_paste, y_paste))
+    return final_image
+
+def img_color_ascii(map: list[list[int]], color_invert: bool, fix_color:bool, image: Image) -> Image:
+    """Get ascii img art from brightness map.
+    Args:
+        list (list[list[int]]): brightness map 
+        color_invert (bool): Inverts order of char list for img ascii. White color of img will turn black on final img if True
+        image (Image): resized image for colors
+    Returns:
+        Image: ascii art"""
+    load = image.load()
+    char_set: list[Image] = img_char_set[::-1] if color_invert else img_char_set
+    y_size = len(map)
+    x_size = len(map[0])
+    final_image = Image.new("RGB", (x_size * char_size["x"], y_size * char_size["y"]), color="black")
+    for y in range(y_size):
+        y_paste = y * char_size["y"]
+        for x in range(x_size):
+            x_paste = x * char_size["x"]
+            if(fix_color and color_invert and map[y][x] in [1,0]):
+                color = (255,255,255)
+            else:
+                color = load[x,y]
+            final_image.paste(ImageOps.colorize(char_set[map[y][x]], (0,0,0), color), (x_paste, y_paste))
     return final_image
 
 def txt_ascii(map: list[list[int]], chars_invert: bool) -> Image:
@@ -76,7 +101,8 @@ def txt_ascii(map: list[list[int]], chars_invert: bool) -> Image:
 def convert(path:str, 
             color_invert: bool = False, chars_invert: bool = False,
             txt_need: bool = False, img_need: bool = True,
-            use_y_ratio: bool = False ) -> tuple[str] | None:
+            use_y_ratio: bool = False, 
+            color: bool = False, fix_color: bool = False) -> tuple[str] | None:
     """Convert img to ascii.
     Convert img to ascii art as img or as txt file. Saves into Result/{img file name}/img or txt file
 
@@ -101,7 +127,7 @@ def convert(path:str,
     file_info["path"] = path
     file_info["name"], file_info["extension"] = os.path.splitext(os.path.basename(path))
 
-    original_image: Image = Image.open(path).convert("L")
+    original_image: Image = Image.open(path)
 
     x_size, y_size = original_image.size
     x_size = round(x_size / char_size["x"])
@@ -122,7 +148,10 @@ def convert(path:str,
     if img_need:
         image: Image = image_resize(original_image, (x_size, y_size))
         luminance: list[list[int]] = image_luminance(image)
-        final_image: Image = img_ascii(luminance, color_invert)
+        if(not color):
+            final_image: Image = img_ascii(luminance, color_invert)
+        else:
+            final_image: Image = img_color_ascii(luminance, color_invert, fix_color, image)
         save: str = f"result/{file_info["name"]}/{file_info["name"]}{file_info["extension"]}"
         final_image.save(save)
         final_img_path = os.path.abspath(save)
