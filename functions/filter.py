@@ -1,5 +1,36 @@
-from PIL import Image, ImageFilter, ImageDraw
+from PIL import Image, ImageFilter, ImageDraw, ImageOps
 import numpy as np
+
+def normalize(array: np.ndarray, alpha: float = 0, beta: float = 1.0) -> np.ndarray:
+    min_val = np.min(array)
+    max_val = np.max(array)
+    if max_val == min_val:
+        return np.zeros_like(array)
+    norm = (beta - alpha) * (array - min_val) / (max_val - min_val) + alpha
+    return norm
+
+def DoG(image: Image, sigma: float = 1) -> Image:
+    k = 1.6
+    sigma2 = k * sigma
+    image = image.convert('L')
+    # Применяем размытие
+    I1 = np.array(image.filter(ImageFilter.GaussianBlur(sigma)))
+    I2 = np.array(image.filter(ImageFilter.GaussianBlur(sigma2)))
+    dog = (I1 - I2) + image#* (image - I2 * I1)
+    dog = normalize(dog)
+    median_val = np.median(dog)
+    threshold = max(0.1, median_val * 0.5)
+    binary_edges = (dog > threshold).astype(np.uint8) * 255
+    # Обнуляем отрицательные значения и нормализуем
+    #dog = np.maximum(dog, 0)
+    #dog = np.minimum(dog, 1)
+    
+    #dog = dog / np.max(dog)
+    #np.savetxt("test.txt", dog.astype(int), delimiter="", fmt='%d')
+    img = Image.fromarray((binary_edges).astype(np.uint8))
+    img.show()
+    img.save("test.jpg")
+
 
 def mega_sobel(path2img):
     image = Image.open(path2img).convert('L')
@@ -38,3 +69,4 @@ def mega_sobel(path2img):
     #            image.putpixel((x, y), 0)
     #image.show()
 
+DoG(Image.open('C:/Users/lox/Desktop/projects/py/img2ascii/resources/examples/maxresdefault.jpg'))
