@@ -11,4 +11,4 @@ def OFD() -> str:
 
 if __name__ == "__main__":
     file = OFD()
-    print(convert(path=file, color_invert=True, color=True, fix_color=True))
+    print(convert(path=file, color=True, fix_color=True))

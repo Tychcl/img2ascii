@@ -1,7 +1,6 @@
 from PIL import Image, ImageOps
 import numpy as np
 import os
-from functions.filter import mega_sobel
 #Если вы будете изменять символы или менять из размер
 #То для начала убедитесь, что вы изменили картинку в ресурсах
 

@@ -69,4 +69,4 @@ def mega_sobel(path2img):
     #            image.putpixel((x, y), 0)
     #image.show()
 
-DoG(Image.open('C:/Users/lox/Desktop/projects/py/img2ascii/resources/examples/maxresdefault.jpg'))
+#DoG(Image.open('C:/Users/lox/Desktop/projects/py/img2ascii/resources/examples/maxresdefault.jpg'))
