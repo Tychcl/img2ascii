@@ -1,12 +1,26 @@
 from PIL import Image, ImageFilter, ImageDraw, ImageOps
 import numpy as np
 
-def thresh(array, value = 0.5):
+def thresh(array: np.ndarray, value = 0.5) -> float:
+    """Get optimal threshhold.
+    Args:
+        array (np.ndarray): array
+        value (float): more value - less detail for image array
+    Returns:
+        float: threshold value
+    """
     median_val = np.median(array)
     threshold = max(0.1, median_val * value)
     return threshold
 
 def normalize(array: np.ndarray, alpha: float = 0, beta: float = 1.0) -> np.ndarray:
+    """Get optimal threshhold.
+    Args:
+        array (np.ndarray): array
+        value (float): more value - less detail for image array
+    Returns:
+        float: threshold value
+    """
     min_val = np.min(array)
     max_val = np.max(array)
     if max_val == min_val:
@@ -14,35 +28,31 @@ def normalize(array: np.ndarray, alpha: float = 0, beta: float = 1.0) -> np.ndar
     norm = (beta - alpha) * (array - min_val) / (max_val - min_val) + alpha
     return norm
 
-def DoG(image: Image, sigma: float = 1) -> Image:
+def DoG(image: Image, sigma: float = 1, th = 0.5) -> np.ndarray:
+    """Difference of gaussian func.
+    Args:
+        image (Image): image
+        sigma (float): value of gaussian blur №1
+        th (float): threshhold for thresh func
+    Returns:
+        np.ndarray: w/b mask
+    """
     k = 1.6
     sigma2 = k * sigma
     image = image.convert('L')
-    # Применяем размытие
     I1 = np.array(image.filter(ImageFilter.GaussianBlur(sigma)))
     I2 = np.array(image.filter(ImageFilter.GaussianBlur(sigma2)))
-    dog = (I1 - I2) + image#* (image - I2 * I1)
+    dog = (I1 - I2) + image
     dog = normalize(dog)
-    median_val = np.median(dog)
-    threshold = max(0.1, median_val * 0.5)
-    binary_edges = (dog > threshold).astype(np.uint8) * 255
-    # Обнуляем отрицательные значения и нормализуем
-    #dog = np.maximum(dog, 0)
-    #dog = np.minimum(dog, 1)
-    
-    #dog = dog / np.max(dog)
-    #np.savetxt("test.txt", dog.astype(int), delimiter="", fmt='%d')
-    #img = Image.fromarray((binary_edges).astype(np.uint8))
+    binary_edges = (dog > thresh(dog, th)).astype(np.uint8) * 255
     return binary_edges
-    #img.show()
-    #img.save("test.jpg")
 
-
-def mega_sobel(array):
-    #image = Image.open(path2img).convert('L')
-    width, height = array.shape
-    #image = image.resize((round(width/8), round(height/8)), Image.LANCZOS)
-    #Image.open(path2img).filter(ImageFilter.FIND_EDGES).show()
+def mega_sobel(array: np.ndarray):
+    """Get sobel image.
+    Args:
+        array (np.ndarray): image array
+    """
+    #height, width = array.shape
 
     kernel_x = np.array([[-3, 0, 3], [-10, 0, 10], [-3, 0, 3]])
     kernel_y = np.array([[-3, -10, -3], [0, 0, 0], [3, 10, 3]])
@@ -55,17 +65,14 @@ def mega_sobel(array):
     x = np.sum(windows * kernel_x, axis=(2, 3))
     y = np.sum(windows * kernel_y, axis=(2, 3))
 
-    th = 2
     magnitude = np.sqrt(x ** 2 + y ** 2)
     magnitude = normalize(magnitude)
-    magnitude = magnitude > th
-    magnitude = magnitude / np.max(magnitude)
+    magnitude = magnitude > thresh(magnitude)
 
     vector = (np.arctan2(y, x) / np.pi) * 0.5 + 0.5
     vector = vector / np.max(vector)
 
-    #np.savetxt('magnitude.txt', magnitude, delimiter=',')
-    Image.fromarray(vector * 255).show()
+    Image.fromarray(magnitude * vector * 255).show()
 
     #for y in range(height):
     #    for x in range(width):
@@ -75,4 +82,4 @@ def mega_sobel(array):
     #            image.putpixel((x, y), 0)
     #image.show()
 
-mega_sobel(DoG(Image.open('C:\\Users\\Administrator\\Desktop\\img2ascii\\resources\\examples\\Dog.jpg')))
+mega_sobel(DoG(image=Image.open('C:\\Users\\lox\\Desktop\\projects\\py\\img2ascii\\resources\\examples\\Dog.jpg'), th=2))
