@@ -1,5 +1,5 @@
 import customtkinter
-from widgets.OFD import OFD
+from widgets.Widgets import OFD
 
 class App(customtkinter.CTk):
     def __init__(self):

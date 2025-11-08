@@ -20,4 +20,5 @@ class OFD(customtkinter.CTkFrame):
                     ("JPG","*.jpg"),("JPEG","*.jpeg")))
         self.master.ImagePath = path
         self.PathLabel.configure(text=path)
+
         
