@@ -1,5 +1,6 @@
 from PIL import Image, ImageFilter, ImageDraw, ImageOps
 import numpy as np
+import time
 
 def thresh(array: np.ndarray, value = 0.5) -> float:
     """Get optimal threshhold.
@@ -14,12 +15,13 @@ def thresh(array: np.ndarray, value = 0.5) -> float:
     return threshold
 
 def normalize(array: np.ndarray, alpha: float = 0, beta: float = 1.0) -> np.ndarray:
-    """Get optimal threshhold.
+    """Normalize array by Minimax algorithm.
     Args:
         array (np.ndarray): array
-        value (float): more value - less detail for image array
+        alpha (float): is the best value that the maximizer currently can guarantee at that level or above.
+        beta (float): is the best value that the minimizer currently can guarantee at that level or below.
     Returns:
-        float: threshold value
+        np.ndarray: Normalized array
     """
     min_val = np.min(array)
     max_val = np.max(array)
@@ -47,13 +49,11 @@ def DoG(image: Image, sigma: float = 1, th = 0.5) -> np.ndarray:
     binary_edges = (dog > thresh(dog, th)).astype(np.uint8) * 255
     return binary_edges
 
-def mega_sobel(array: np.ndarray):
+def sobel(array: np.ndarray):
     """Get sobel image.
     Args:
         array (np.ndarray): image array
     """
-    #height, width = array.shape
-
     kernel_x = np.array([[-3, 0, 3], [-10, 0, 10], [-3, 0, 3]])
     kernel_y = np.array([[-3, -10, -3], [0, 0, 0], [3, 10, 3]])
 
@@ -70,16 +70,8 @@ def mega_sobel(array: np.ndarray):
     magnitude = magnitude > thresh(magnitude)
 
     vector = (np.arctan2(y, x) / np.pi) * 0.5 + 0.5
-    vector = vector / np.max(vector)
+    vector = (vector / np.max(vector)) * 255
 
-    Image.fromarray(magnitude * vector * 255).show()
+    #Image.fromarray(magnitude * vector * 255).show()
 
-    #for y in range(height):
-    #    for x in range(width):
-    #        if magnitude[y,x] == 0:
-    #            image.putpixel((x, y), 255)
-    #        else:
-    #            image.putpixel((x, y), 0)
-    #image.show()
-
-mega_sobel(DoG(image=Image.open('C:\\Users\\lox\\Desktop\\projects\\py\\img2ascii\\resources\\examples\\Dog.jpg'), th=2))
+#sobel(DoG(image=Image.open('C:\\Users\\lox\\Desktop\\projects\\py\\img2ascii\\resources\\examples\\Dog.jpg'), th=2))
