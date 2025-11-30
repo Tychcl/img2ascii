@@ -70,8 +70,20 @@ def sobel(array: np.ndarray):
     magnitude = magnitude > thresh(magnitude)
 
     vector = (np.arctan2(y, x) / np.pi) * 0.5 + 0.5
-    vector = (vector / np.max(vector)) * 255
+    vector = normalize(vector)
+    return magnitude * vector
 
-    #Image.fromarray(magnitude * vector * 255).show()
+def edges_map(image: np.ndarray):
+    y_size , x_size = image.shape
+    divine = 255 / 7
+    return np.round(image / divine).astype(int)
 
-#sobel(DoG(image=Image.open('C:\\Users\\lox\\Desktop\\projects\\py\\img2ascii\\resources\\examples\\Dog.jpg'), th=2))
+def preprocessing(array: np.ndarray, threshold: float = 0.9):
+    return (array > thresh(array, threshold)).astype(np.uint8) * 255
+
+def filter(image: Image, DoG: bool = False, 
+    preprocessing: bool = False, preprocessing_threshold: float = 0.9):
+    pass
+
+i = Image.open("untitled.PNG")
+Image.fromarray(sobel(np.array(i.convert("L"))) * 255).show()

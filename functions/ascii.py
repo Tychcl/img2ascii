@@ -1,19 +1,18 @@
 from PIL import Image, ImageOps
 import numpy as np
 import os
-#Если вы будете изменять символы или менять из размер
-#То для начала убедитесь, что вы изменили картинку в ресурсах
 
-char_size: tuple = {"x": 8, "y": 8} #размер символа на картинке (x,y)
-char_ratio: tuple = {"x":14/7, "y":7/14} #соотношение сторон (x,y)
+char_size: tuple = {"x": 8, "y": 8}
+char_ratio: tuple = {"x":14/7, "y":7/14}
 
 file_info: dict = {"path": None, "name": None, "extension": None}
-#строка изначально перевернута из за того, что так результат выглядит лучше " .:coP0?@■"
 txt_char_set: str = "■@?0Poc:. "
-#делитель для получения символа по яркости
 divine: float = 255 / (len(txt_char_set)-1)
 img_char_set_path = "resources/chars/fillASCII.png"
 
+#class ascii:
+#    def __init__(self, image_path: str):
+#        self.image = 
 
 def image_resize(image: Image, size: tuple) -> Image:
     """Resize img.
