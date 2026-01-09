@@ -71,7 +71,7 @@ def img_color_ascii(map: np.ndarray, color_invert: bool, fix_color:bool, image: 
             final_image[y_paste:y_paste+char_size["y"], x_paste:x_paste+char_size["x"]] = char
     return final_image
 
-def convert(path:str|Image,
+def convert(path,
             color_invert: bool = False, 
             color: bool = False, fix_color: bool = False) -> str | None:
     """Convert img to ascii.
@@ -107,8 +107,8 @@ def convert(path:str|Image,
         final_image: np.ndarray = img_color_ascii(luminance, color_invert, fix_color, image)
     else:
         final_image: np.ndarray = img_ascii(luminance, color_invert)
-    save: str = f"result/{file_info["name"]}/{file_info["name"]}{file_info["extension"]}"
+    save: str = f"result/{file_info["name"]}{file_info["extension"]}"
     final_img = Image.fromarray(final_image)
     #final_img.save(save)
     final_img_path = os.path.abspath(save)
-    return final_img
+    return (final_img, final_img_path)

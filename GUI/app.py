@@ -179,61 +179,61 @@ class App(ctk.CTk):
         """Преобразовать изображение в ASCII арт"""
         if not self.original_image:
             return
+
+        try:
+            # Пробуем разные варианты импорта
+            try:
+                from functions.ascii import convert
+            except ImportError:
+                # Альтернативный путь
+                import sys
+                sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+                from functions.ascii import convert
+
+            # Получаем все текущие настройки
+            all_settings = {**self.main_settings}
+            if self.main_settings.get('edge', False):
+                all_settings.update(self.edge_settings)
+            else:
+                all_settings.update({
+                    'preprocessing': 0.0,
+                    'DoG': False,
+                    'detail': 0.5
+                })
+
+            # Вызываем функцию преобразования
+            result = convert(
+                self.original_image,
+                all_settings.get('color_invert', False),
+                all_settings.get('color', False),
+                all_settings.get('fix_color', False)
+            )
+            self.result_image = result[0]
+            self.result_display.set_image(self.result_image)
+            self.save_path = result[1]
         
-        # Получаем все текущие настройки
-        all_settings = {**self.main_settings}
-        if self.main_settings.get('edge', False):
-            all_settings.update(self.edge_settings)
-        else:
-            all_settings.update({
-                'preprocessing': 0.0,
-                'DoG': False,
-                'detail': 0.5
-            })
-        
-        from functions.ascii import convert
-        
-        # TODO: Здесь вызываем твою функцию преобразования в ASCII
-        # Например:
-        # self.result_image = your_ascii_converter(
-        #     self.original_image,
-        #     **all_settings
-        # )
-        
-        # Пока заглушка - просто копируем изображение
-        self.result_image = convert(self.original_image,
-                                all_settings.get('color_invert', False),
-                                all_settings.get('color', False),
-                                all_settings.get('fix_color', False)
-                            )
-        self.result_display.set_image(self.result_image)
+        except ImportError as e:
+            print(f"Ошибка импорта: {e}")
+            print(f"Текущий sys.path: {sys.path}")
+            print(f"Текущая директория: {os.getcwd()}")
+            # Показываем сообщение об ошибке
+            import tkinter.messagebox as mb
+            mb.showerror("Ошибка", "Не удалось загрузить модуль ascii.py")
     
     def save_result(self):
         """Сохранить результат"""
         if not self.result_image:
-            print("Сначала преобразуйте изображение!")
             return
         
-        file_path = filedialog.asksaveasfilename(
-            title="Сохранить результат",
-            defaultextension=".png",
-            filetypes=[
-                ("PNG", "*.png"),
-                ("JPEG", "*.jpg"),
-                ("Все файлы", "*.*")
-            ]
-        )
-        
-        if file_path:
-            try:
-                self.result_image.save(file_path)
-                print(f"Изображение сохранено: {file_path}")
-            except Exception as e:
-                print(f"Ошибка сохранения: {e}")
+        try:
+            self.result_image.save(self.save_path)
+        except Exception as e:
+            print(f"Ошибка сохранения: {e}")
     
     def open_folder(self):
         """Открыть папку с результатами"""
-        print("Открытие папки...")
+        import subprocess
+        subprocess.Popen(f'explorer "Result"')
 
 def main():
     app = App()
