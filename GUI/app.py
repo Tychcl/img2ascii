@@ -3,10 +3,16 @@ from widgets.ImageSelector import ImageSelector
 from widgets.ImageDisplay import ImageDisplay
 from widgets.MainSettings import MainSettings
 from widgets.EdgeSettings import EdgeSettings
-from widgets.TestImages import TestImagesWindow
 from tkinter import filedialog
 from PIL import Image
 import os
+import sys
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)  # папка GUI
+project_root = os.path.dirname(parent_dir)  # корень проекта
+sys.path.insert(0, project_root)
+#from functions.ascii import convert
+
 
 class App(ctk.CTk):
     def __init__(self):
@@ -70,7 +76,7 @@ class App(ctk.CTk):
         # Настройки границ (изначально скрыты)
         self.edge_settings_frame = ctk.CTkFrame(right_frame)
 
-# Убедись, что фон темный:
+        # Убедись, что фон темный:
         self.edge_settings_frame.configure(fg_color="transparent")
         self.edge_settings_frame.pack(pady=0, padx=5, fill="x")
         
@@ -90,8 +96,8 @@ class App(ctk.CTk):
         # Кнопка показа/скрытия тестовых изображений
         self.toggle_test_btn = ctk.CTkButton(
             right_frame,
-            text="Показать тестовые изображения",
-            command=self.toggle_test_window,
+            text="Использовать тестовое изображение",
+            command=self.use_test_image,
             height=40
         )
         self.toggle_test_btn.pack(padx=5, pady=5, fill="x", side="bottom")
@@ -123,6 +129,12 @@ class App(ctk.CTk):
         )
         self.open_folder_btn.pack(side="left", padx=10)
     
+    def use_test_image(self):
+        self.image_selector.entry.delete(0, "end")
+        self.image_selector.entry.insert(0, os.path.abspath("resources/examples/Simple.jpg"))
+        self.image_selector.load_image()
+        self.on_image_selected(self.image_selector.current_image)
+    
     def on_image_selected(self, image):
         """Обработчик выбора изображения"""
         self.original_image = image
@@ -148,9 +160,8 @@ class App(ctk.CTk):
     def update_all_settings(self):
         """Объединить все настройки и отправить обновление"""
         # Объединяем настройки
-        #print({**self.main_settings})
         all_settings = {**self.main_settings}
-        
+
         # Добавляем настройки границ только если edge включен
         if self.main_settings.get('edge', False):
             all_settings.update(self.edge_settings)
@@ -161,49 +172,12 @@ class App(ctk.CTk):
                 'DoG': False,
                 'detail': 0.5
             })
-        
-        # Обновляем тестовые изображения если окно открыто
-        if self.test_window and self.test_window.winfo_exists():
-            self.test_window.update_test_results(all_settings)
-        
-        # Здесь можно добавить предпросмотр на основном изображении
-        print(f"Все настройки: {all_settings}")
-    
-    def toggle_test_window(self):
-        """Показать/скрыть окно с тестовыми изображениями"""
-        if self.test_window is None or not self.test_window.winfo_exists():
-            # Создаем новое окно
-            self.test_window = TestImagesWindow(
-                self,
-                on_settings_change=self.update_all_settings
-            )
-            self.toggle_test_btn.configure(text="Скрыть тестовые изображения")
-            
-            # Передаем текущие настройки
-            all_settings = {**self.main_settings}
-            if self.main_settings.get('edge', False):
-                all_settings.update(self.edge_settings)
-            else:
-                all_settings.update({
-                    'preprocessing': 0.0,
-                    'DoG': False,
-                    'detail': 0.5
-                })
-            self.test_window.update_test_results(all_settings)
-        else:
-            if self.test_window.winfo_viewable():
-                # Окно видимо - скрываем
-                self.test_window.hide_window()
-                self.toggle_test_btn.configure(text="Показать тестовые изображения")
-            else:
-                # Окно скрыто - показываем
-                self.test_window.show_window()
-                self.toggle_test_btn.configure(text="Скрыть тестовые изображения")
+
+        # Обновляем тестовые изображения если окно открыто И СУЩЕСТВУЕТ
     
     def convert_to_ascii(self):
         """Преобразовать изображение в ASCII арт"""
         if not self.original_image:
-            print("Сначала выберите изображение!")
             return
         
         # Получаем все текущие настройки
@@ -217,9 +191,7 @@ class App(ctk.CTk):
                 'detail': 0.5
             })
         
-        print(f"Преобразование с настройками:")
-        for key, value in all_settings.items():
-            print(f"  {key}: {value}")
+        from functions.ascii import convert
         
         # TODO: Здесь вызываем твою функцию преобразования в ASCII
         # Например:
@@ -229,10 +201,12 @@ class App(ctk.CTk):
         # )
         
         # Пока заглушка - просто копируем изображение
-        self.result_image = self.original_image.copy()
+        self.result_image = convert(self.original_image,
+                                all_settings.get('color_invert', False),
+                                all_settings.get('color', False),
+                                all_settings.get('fix_color', False)
+                            )
         self.result_display.set_image(self.result_image)
-        
-        print("Преобразование завершено!")
     
     def save_result(self):
         """Сохранить результат"""

@@ -1,4 +1,4 @@
 from PIL import Image, ImageDraw
-
-img1 = Image.open("resources\examples\gradient.png")
-print(img1.filename)
+from functions.ascii import convert
+img1 = convert("resources\examples\color.png", color=True)
+img1[1].show()

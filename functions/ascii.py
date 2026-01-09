@@ -71,9 +71,9 @@ def img_color_ascii(map: np.ndarray, color_invert: bool, fix_color:bool, image: 
             final_image[y_paste:y_paste+char_size["y"], x_paste:x_paste+char_size["x"]] = char
     return final_image
 
-def convert(path:str, 
+def convert(path:str|Image,
             color_invert: bool = False, 
-            color: bool = False, fix_color: bool = False) -> tuple[str] | None:
+            color: bool = False, fix_color: bool = False) -> str | None:
     """Convert img to ascii.
     Convert img to ascii art as img or as txt file. Saves into Result/{img file name}/img or txt file
     Args:
@@ -81,22 +81,26 @@ def convert(path:str,
         color_invert (bool): Inverts order of char list for img ascii. White color of img will turn black on final img if True    
     Returns:
         tuple[str]: Paths to saved img, if not saved path is None"""
-    if not os.path.exists(path):
+    original_image: Image
+    if path is not str:
+        original_image = path
+        path = original_image.filename
+    elif not os.path.exists(path):
         return None
+    else:
+        original_image: Image = Image.open(path).convert('RGB')
 
     global file_info
 
     file_info["path"] = path
     file_info["name"], file_info["extension"] = os.path.splitext(os.path.basename(path))
 
-    original_image: Image = Image.open(path)
-
+    os.makedirs(f"result/{file_info["name"]}", exist_ok=True)
+    
     x_size, y_size = original_image.size
     x_size = round(x_size / char_size["x"])
     y_size = round(y_size / char_size["y"])
-
-    os.makedirs(f"result/{file_info["name"]}", exist_ok=True)
-
+    
     image: Image = image_resize(original_image, (x_size, y_size))
     luminance: np.ndarray = image_luminance(image)
     if(color):
@@ -104,6 +108,7 @@ def convert(path:str,
     else:
         final_image: np.ndarray = img_ascii(luminance, color_invert)
     save: str = f"result/{file_info["name"]}/{file_info["name"]}{file_info["extension"]}"
-    Image.fromarray(final_image).save(save)
+    final_img = Image.fromarray(final_image)
+    #final_img.save(save)
     final_img_path = os.path.abspath(save)
-    return final_img_path
+    return final_img
