@@ -3,16 +3,11 @@ import numpy as np
 import os
 
 char_size: tuple = {"x": 8, "y": 8}
-char_ratio: tuple = {"x":14/7, "y":7/14}
 
 file_info: dict = {"path": None, "name": None, "extension": None}
-txt_char_set: str = "■@?0Poc:. "
-divine: float = 255 / (len(txt_char_set)-1)
+txt_char_set_len: int = len("■@?0Poc:. ")
+divine: float = 255 / (txt_char_set_len-1)
 img_char_set_path = "resources/chars/fillASCII.png"
-
-#class ascii:
-#    def __init__(self, image_path: str):
-#        self.image = 
 
 def image_resize(image: Image, size: tuple) -> Image:
     """Resize img.
@@ -38,7 +33,7 @@ def img_ascii(map: np.ndarray, color_invert: bool) -> Image:
         color_invert (bool): Inverts order of char list for img ascii. White color of img will turn black on final img if True
     Returns:
         Image: ascii art"""
-    img_char_set: list[np.ndarray] = np.hsplit(np.array(Image.open(img_char_set_path).convert("L")), len(txt_char_set))
+    img_char_set: list[np.ndarray] = np.hsplit(np.array(Image.open(img_char_set_path).convert("L")), txt_char_set_len)
     char_set: list[np.ndarray] = img_char_set[::-1] if color_invert else img_char_set
     y_size , x_size = map.shape
     final_image = np.zeros((y_size * char_size["y"], x_size * char_size["x"]), dtype=np.uint8)
@@ -61,7 +56,7 @@ def img_color_ascii(map: np.ndarray, color_invert: bool, fix_color:bool, image: 
     if(fix_color and color_invert):
         load[(map == 0) | (map == 1)] = (255,255,255)
 
-    img_char_set: list[np.ndarray] = np.hsplit(np.array(Image.open(img_char_set_path).convert("L")), len(txt_char_set))
+    img_char_set: list[np.ndarray] = np.hsplit(np.array(Image.open(img_char_set_path).convert("L")), txt_char_set_len)
     char_set: list[np.ndarray] = img_char_set[::-1] if color_invert else img_char_set
     char_set = [np.repeat(char_array[:, :, np.newaxis], 3, axis=2) for char_array in char_set]
     char_set = char_set / np.max(char_set)
@@ -83,11 +78,9 @@ def convert(path:str,
     Convert img to ascii art as img or as txt file. Saves into Result/{img file name}/img or txt file
     Args:
         path (str): Path to img file
-        color_invert (bool): Inverts order of char list for img ascii. White color of img will turn black on final img if True
-        chars_invert (bool): Inverts order of char list for txt ascii. White color of img will turn '■' if True    
+        color_invert (bool): Inverts order of char list for img ascii. White color of img will turn black on final img if True    
     Returns:
         tuple[str]: Paths to saved img, if not saved path is None"""
-    #Обработка, чтобы просто так не выполнять действия, если ничего не надо
     if not os.path.exists(path):
         return None
 

@@ -4,9 +4,17 @@ from PIL import Image
 import os
 
 class ImageSelector(ctk.CTkFrame):
-    def __init__(self, master=None, **kwargs):
+    """Виджет для выбора изображения"""
+    
+    def __init__(self, master=None, on_image_selected=None, **kwargs):
         super().__init__(master, **kwargs)
         
+        self.on_image_selected = on_image_selected
+        self.current_image = None
+        
+        self.create_widgets()
+        
+    def create_widgets(self):
         self.entry = ctk.CTkEntry(
             self,
             placeholder_text="Путь к файлу..."
@@ -32,10 +40,11 @@ class ImageSelector(ctk.CTkFrame):
         self.entry.bind("<Return>", lambda e: self.load_image())
     
     def browse_file(self):
+        """Выбрать файл через диалог"""
         file_path = filedialog.askopenfilename(
             title="Выберите картинку",
             filetypes=[
-                ("Изображения", "*.png *.jpg *.jpeg *.bmp"),
+                ("Изображения", "*.png *.jpg *.jpeg *.bmp *.gif *.webp"),
             ]
         )
         
@@ -45,44 +54,25 @@ class ImageSelector(ctk.CTkFrame):
             self.load_image()
     
     def load_image(self):
+        """Загрузить картинку"""
         path = self.entry.get().strip()
         
         if not path:
             return
         
-        if hasattr(self.master, 'image_area'):
-            image_area = self.master.image_area
-        else:
-            for widget in self.master.winfo_children():
-                if isinstance(widget, ctk.CTkLabel) and widget != self:
-                    image_area = widget
-                    break
-            else:
-                return
-        
         try:
             if not os.path.exists(path):
-                image_area.configure(
-                    image=None,
-                    text="Нет такого файла",
-                    text_color="red"
-                )
                 return
             
             img = Image.open(path)
-            img.thumbnail((500, 400))
+            self.current_image = img
             
-            ctk_img = ctk.CTkImage(
-                light_image=img,
-                dark_image=img,
-                size=img.size
-            )
+            if self.on_image_selected:
+                self.on_image_selected(img)
             
-            image_area.configure(image=ctk_img, text="")
-            
-        except Exception:
-            image_area.configure(
-                image=None,
-                text="Ошибка загрузки",
-                text_color="red"
-            )
+        except Exception as e:
+            print(f"Ошибка загрузки: {e}")
+    
+    def get_image(self):
+        """Получить текущее изображение"""
+        return self.current_image

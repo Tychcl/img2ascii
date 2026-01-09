@@ -81,9 +81,18 @@ def edges_map(image: np.ndarray):
 def preprocessing(array: np.ndarray, threshold: float = 0.9):
     return (array > thresh(array, threshold)).astype(np.uint8) * 255
 
-def filter(image: Image, DoG: bool = False, 
-    preprocessing: bool = False, preprocessing_threshold: float = 0.9):
-    pass
+def filter(image: Image, DoG_bool: bool = False, DoG_threshold: float = 0.5,
+    preprocessing_bool: bool = False, preprocessing_threshold: float = 0.9):
+    image = image.convert("L")
+    image_array = np.array(image)
+    if(preprocessing_bool):
+        image_array = preprocessing(image_array, preprocessing_threshold)
+        image = Image.fromarray(image_array)
+    if(DoG_bool):
+        image_array = DoG(image, DoG_threshold)
+    
+    
+        
 
 i = Image.open("untitled.PNG")
 Image.fromarray(sobel(np.array(i.convert("L"))) * 255).show()
