@@ -1,6 +1,7 @@
 from PIL import Image, ImageFilter, ImageDraw, ImageOps
 import numpy as np
 import time
+from ascii import char_size
 
 def thresh(array: np.ndarray, value = 0.5) -> float:
     """Get optimal threshhold.
@@ -49,7 +50,7 @@ def DoG(image: Image, sigma: float = 1, th = 0.5) -> np.ndarray:
     binary_edges = (dog > thresh(dog, th)).astype(np.uint8) * 255
     return binary_edges
 
-def sobel(array: np.ndarray):
+def sobel(array: np.ndarray) -> np.ndarray:
     """Get sobel image.
     Args:
         array (np.ndarray): image array
@@ -71,12 +72,27 @@ def sobel(array: np.ndarray):
 
     vector = (np.arctan2(y, x) / np.pi) * 0.5 + 0.5
     vector = normalize(vector)
-    return magnitude * vector
+    return (vector, magnitude)
 
-def edges_map(image: np.ndarray):
-    y_size , x_size = image.shape
-    divine = 255 / 7
-    return np.round(image / divine).astype(int)
+def edges_map(vector: np.ndarray, magnitude: np.ndarray, threshold: float = 0.25):
+    y_size, x_size = vector.shape
+    c = 1
+    columns = round(x_size / char_size["x"])
+    rows = round(y_size / char_size["y"])
+    vec_tiles = vector.reshape(rows, char_size["y"], columns, char_size["x"], c).transpose(0, 2, 1, 3, 4)
+    
+    mag_tiles = magnitude.reshape(rows, char_size["y"], columns, char_size["x"], c).transpose(0, 2, 1, 3, 4)
+    mag_map = (mag_tiles.sum(axis=(2, 3, 4)) / char_size["y"] * char_size["x"] * mag_tiles.shape[-1] / 100) > threshold
+    return
+    #map = np.empty((rows, columns))
+    #for y in range(y_size):
+    #    for x in range(x_size):
+    #        if(mag_tiles[y][x])
+    #Image.fromarray(tiles[0][0]).show()
+    #print(len(tiles[0]))
+    #split_map = np.dsplit
+    
+            
 
 def preprocessing(array: np.ndarray, threshold: float = 0.9):
     return (array > thresh(array, threshold)).astype(np.uint8) * 255
@@ -90,9 +106,9 @@ def filter(image: Image, DoG_bool: bool = False, DoG_threshold: float = 0.5,
         image = Image.fromarray(image_array)
     if(DoG_bool):
         image_array = DoG(image, DoG_threshold)
-    
-    
-        
-
-i = Image.open("untitled.PNG")
-Image.fromarray(sobel(np.array(i.convert("L"))) * 255).show()
+    image_array = sobel(image_array)
+     
+i = np.array(Image.open("resources/examples/Simple.jpg").convert("L"))
+v, m = sobel(i)
+edges_map(v ,m)
+#Image.fromarray(v * m * 255).resize((round(240 / 8), round(240 / 8))).show()

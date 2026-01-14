@@ -40,6 +40,8 @@ def img_ascii(map: np.ndarray, color_invert: bool) -> Image:
     for y in range(y_size):
         y_paste = y * char_size["y"]
         for x in range(x_size):
+            if(map[y][x] == -1):
+                continue
             x_paste = x * char_size["x"]
             final_image[y_paste:y_paste+char_size["y"], x_paste:x_paste+char_size["x"]] = char_set[map[y][x]]
     return final_image
@@ -66,6 +68,8 @@ def img_color_ascii(map: np.ndarray, color_invert: bool, fix_color:bool, image: 
     for y in range(y_size):
         y_paste = y * char_size["y"]
         for x in range(x_size):
+            if(map[y][x] == -1):
+                continue
             x_paste = x * char_size["x"]
             char = char_set[map[y][x]] * load[y][x]
             final_image[y_paste:y_paste+char_size["y"], x_paste:x_paste+char_size["x"]] = char
@@ -95,7 +99,7 @@ def convert(path,
     file_info["path"] = path
     file_info["name"], file_info["extension"] = os.path.splitext(os.path.basename(path))
 
-    os.makedirs(f"result/{file_info["name"]}", exist_ok=True)
+    #os.makedirs(f"result/{file_info["name"]}", exist_ok=True)
     
     x_size, y_size = original_image.size
     x_size = round(x_size / char_size["x"])

@@ -1,4 +1,6 @@
-from PIL import Image, ImageDraw
-from functions.ascii import convert
-img1 = convert("resources\examples\color.png", color=True)
-img1[1].show()
+from PIL import Image
+import numpy as np
+img = np.array(Image.open("test.png"))
+split = np.dsplit(img, [2,2,3])
+print(split[0])
+Image.fromarray(split[0]).show()

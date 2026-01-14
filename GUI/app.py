@@ -7,11 +7,8 @@ from tkinter import filedialog
 from PIL import Image
 import os
 import sys
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)  # папка GUI
-project_root = os.path.dirname(parent_dir)  # корень проекта
-sys.path.insert(0, project_root)
-#from functions.ascii import convert
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from functions.ascii import convert
 
 
 class App(ctk.CTk):
@@ -181,14 +178,6 @@ class App(ctk.CTk):
             return
 
         try:
-            # Пробуем разные варианты импорта
-            try:
-                from functions.ascii import convert
-            except ImportError:
-                # Альтернативный путь
-                import sys
-                sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-                from functions.ascii import convert
 
             # Получаем все текущие настройки
             all_settings = {**self.main_settings}
@@ -224,7 +213,6 @@ class App(ctk.CTk):
         """Сохранить результат"""
         if not self.result_image:
             return
-        
         try:
             self.result_image.save(self.save_path)
         except Exception as e:
