@@ -74,17 +74,44 @@ def sobel(array: np.ndarray) -> np.ndarray:
     vector = normalize(vector)
     return (vector, magnitude)
 
+def get_edge(array: np.ndarray, filter_value = 0) -> int:
+    v, c = np.unique(array[array != filter_value].flatten(), return_counts=True)
+    if(len(v) > 0):
+        return v[np.argmax(c)]
+    else:
+        return filter_value
+
 def edges_map(vector: np.ndarray, magnitude: np.ndarray, threshold: float = 0.25):
     y_size, x_size = vector.shape
     c = 1
     columns = round(x_size / char_size["x"])
     rows = round(y_size / char_size["y"])
-    vec_tiles = vector.reshape(rows, char_size["y"], columns, char_size["x"], c).transpose(0, 2, 1, 3, 4)
+    
+    mask_h = ((vector >= 0.4375) & (vector <= 0.5625)) | (vector <= 0.0625) | (vector >= 0.9375)
+    mask_v = ((vector >= 0.1875) & (vector <= 0.3125)) | ((vector >= 0.6875) & (vector <= 0.8125))
+    mask_dr = ((vector >= 0.3125) & (vector <= 0.4375)) | ((vector >= 0.5625) & (vector <= 0.6875))
+    mask_dl = ((vector >= 0.0625) & (vector <= 0.1875)) | ((vector >= 0.8125) & (vector <= 0.9375))
+    
+    temp = np.zeros_like(vector, dtype=int)
+    temp[mask_h] = -4
+    temp[mask_v] = -3
+    temp[mask_dr] = -2
+    temp[mask_dl] = -1
+    temp[(magnitude == False)] = 0
+    
+    vec_tiles = temp.reshape(rows, char_size["y"], columns, char_size["x"], c).transpose(0, 2, 1, 3, 4)
     
     mag_tiles = magnitude.reshape(rows, char_size["y"], columns, char_size["x"], c).transpose(0, 2, 1, 3, 4)
     mag_map = (mag_tiles.sum(axis=(2, 3, 4)) / char_size["y"] * char_size["x"] * mag_tiles.shape[-1] / 100) > threshold
-    return
-    #map = np.empty((rows, columns))
+    
+    vfunc = np.vectorize(lambda x: get_edge(x, filter_value=0), signature='(n)->()')
+    vec_map = np.empty((rows, columns))
+    for y in range(rows):
+        for x in range(columns):
+            
+    vec_map = get_edge(vec_tiles, filter_value=0)
+    np.savetxt("save.txt", vec_map)
+    return 
     #for y in range(y_size):
     #    for x in range(x_size):
     #        if(mag_tiles[y][x])
@@ -92,8 +119,6 @@ def edges_map(vector: np.ndarray, magnitude: np.ndarray, threshold: float = 0.25
     #print(len(tiles[0]))
     #split_map = np.dsplit
     
-            
-
 def preprocessing(array: np.ndarray, threshold: float = 0.9):
     return (array > thresh(array, threshold)).astype(np.uint8) * 255
 
