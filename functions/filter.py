@@ -84,8 +84,15 @@ def get_edge(array: np.ndarray, filter_value = 0) -> int:
 def edges_map(vector: np.ndarray, magnitude: np.ndarray, threshold: float = 0.25):
     y_size, x_size = vector.shape
     c = 1
-    columns = round(x_size / char_size["x"])
-    rows = round(y_size / char_size["y"])
+    
+    new_y = (y_size // char_size["y"]) * char_size["y"]
+    new_x = (x_size // char_size["x"]) * char_size["x"]
+    
+    vector = vector[:new_y, :new_x]
+    magnitude = magnitude[:new_y, :new_x]
+    
+    columns = new_x // char_size["x"]
+    rows = new_y // char_size["y"]
     
     mask_h = ((vector >= 0.4375) & (vector <= 0.5625)) | (vector <= 0.0625) | (vector >= 0.9375)
     mask_v = ((vector >= 0.1875) & (vector <= 0.3125)) | ((vector >= 0.6875) & (vector <= 0.8125))
@@ -99,6 +106,7 @@ def edges_map(vector: np.ndarray, magnitude: np.ndarray, threshold: float = 0.25
     temp[mask_dr] = -1
     temp[(magnitude == False)] = 0
     
+    print(temp.shape)
     vec_tiles = temp.reshape(rows, char_size["y"], columns, char_size["x"], c).transpose(0, 2, 1, 3, 4)
     
     mag_tiles = magnitude.reshape(rows, char_size["y"], columns, char_size["x"], c).transpose(0, 2, 1, 3, 4)
