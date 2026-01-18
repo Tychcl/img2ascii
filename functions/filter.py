@@ -1,7 +1,7 @@
 from PIL import Image, ImageFilter, ImageDraw, ImageOps
 import numpy as np
-import time
-from ascii import char_size
+
+char_size: tuple = {"x": 8, "y": 8}
 
 def thresh(array: np.ndarray, value = 0.5) -> float:
     """Get optimal threshhold.
@@ -95,8 +95,8 @@ def edges_map(vector: np.ndarray, magnitude: np.ndarray, threshold: float = 0.25
     temp = np.zeros_like(vector, dtype=int)
     temp[mask_h] = -4
     temp[mask_v] = -3
-    temp[mask_dr] = -2
-    temp[mask_dl] = -1
+    temp[mask_dl] = -2
+    temp[mask_dr] = -1
     temp[(magnitude == False)] = 0
     
     vec_tiles = temp.reshape(rows, char_size["y"], columns, char_size["x"], c).transpose(0, 2, 1, 3, 4)
@@ -104,26 +104,19 @@ def edges_map(vector: np.ndarray, magnitude: np.ndarray, threshold: float = 0.25
     mag_tiles = magnitude.reshape(rows, char_size["y"], columns, char_size["x"], c).transpose(0, 2, 1, 3, 4)
     mag_map = (mag_tiles.sum(axis=(2, 3, 4)) / char_size["y"] * char_size["x"] * mag_tiles.shape[-1] / 100) > threshold
     
-    vfunc = np.vectorize(lambda x: get_edge(x, filter_value=0), signature='(n)->()')
-    vec_map = np.empty((rows, columns))
+    #vfunc = np.vectorize(lambda x: get_edge(x, filter_value=0), signature='(n)->()')
+    vec_map = np.empty((rows, columns), dtype= np.int64)
     for y in range(rows):
         for x in range(columns):
-            
-    vec_map = get_edge(vec_tiles, filter_value=0)
-    np.savetxt("save.txt", vec_map)
-    return 
-    #for y in range(y_size):
-    #    for x in range(x_size):
-    #        if(mag_tiles[y][x])
-    #Image.fromarray(tiles[0][0]).show()
-    #print(len(tiles[0]))
-    #split_map = np.dsplit
+            vec_map[y][x] = get_edge(vec_tiles[y][x], filter_value=0)
+    return (vec_map, mag_map)
     
 def preprocessing(array: np.ndarray, threshold: float = 0.9):
     return (array > thresh(array, threshold)).astype(np.uint8) * 255
 
 def filter(image: Image, DoG_bool: bool = False, DoG_threshold: float = 0.5,
-    preprocessing_bool: bool = False, preprocessing_threshold: float = 0.9):
+    preprocessing_bool: bool = False, preprocessing_threshold: float = 0.9,
+    sector_threshold:float = 0.25):
     image = image.convert("L")
     image_array = np.array(image)
     if(preprocessing_bool):
@@ -131,9 +124,11 @@ def filter(image: Image, DoG_bool: bool = False, DoG_threshold: float = 0.5,
         image = Image.fromarray(image_array)
     if(DoG_bool):
         image_array = DoG(image, DoG_threshold)
-    image_array = sobel(image_array)
+    v, m = sobel(image_array)
+    return edges_map(v ,m, sector_threshold)
      
-i = np.array(Image.open("resources/examples/Simple.jpg").convert("L"))
-v, m = sobel(i)
-edges_map(v ,m)
+#i = np.array(Image.open("resources/examples/Simple.jpg").convert("L"))
+#v, m = sobel(i)
+#v, m = edges_map(v ,m)
+
 #Image.fromarray(v * m * 255).resize((round(240 / 8), round(240 / 8))).show()

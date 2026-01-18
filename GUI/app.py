@@ -152,7 +152,6 @@ class App(ctk.CTk):
     def on_edge_settings_change(self, settings):
         """Обработчик изменения настроек границ"""
         self.edge_settings = settings
-        self.update_all_settings()
     
     def update_all_settings(self):
         """Объединить все настройки и отправить обновление"""
@@ -165,12 +164,13 @@ class App(ctk.CTk):
         else:
             # Если границы выключены, используем значения по умолчанию
             all_settings.update({
-                'preprocessing': 0.9,
-                'DoG': False,
-                'detail': 0.5
-            })
-
-        # Обновляем тестовые изображения если окно открыто И СУЩЕСТВУЕТ
+            'edge': False,
+            'preprocessing_bool': False,
+            'preprocessing_value':  0.9,
+            'dog_bool': False,
+            'dog_value':  0.5,
+            'sector_threshold': 0.25
+        })
     
     def convert_to_ascii(self):
         """Преобразовать изображение в ASCII арт"""
@@ -178,24 +178,19 @@ class App(ctk.CTk):
             return
 
         try:
-
-            # Получаем все текущие настройки
-            all_settings = {**self.main_settings}
-            if self.main_settings.get('edge', False):
-                all_settings.update(self.edge_settings)
-            else:
-                all_settings.update({
-                    'preprocessing': 0.0,
-                    'DoG': False,
-                    'detail': 0.5
-                })
-
             # Вызываем функцию преобразования
             result = convert(
-                self.original_image,
-                all_settings.get('color_invert', False),
-                all_settings.get('color', False),
-                all_settings.get('fix_color', False)
+                path= self.original_image,
+                edge= self.main_settings.get('edge', False),
+                color_invert= self.main_settings.get('color_invert', False),
+                color= self.main_settings.get('color', False),
+                fix_color= self.main_settings.get('fix_color', False),
+                
+                preprocessing_bool= self.edge_settings.get('preprocessing_bool', False),
+                preprocessing_value= self.edge_settings.get('preprocessing_value', 0.9),
+                dog_bool= self.edge_settings.get('dog_bool', False),
+                dog_value= self.edge_settings.get('dog_value', 0.5),
+                sector_threshold= self.edge_settings.get('sector_threshold', 0.25),
             )
             self.result_image = result[0]
             self.result_display.set_image(self.result_image)

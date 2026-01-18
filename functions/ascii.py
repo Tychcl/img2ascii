@@ -1,13 +1,17 @@
 from PIL import Image, ImageOps
+import sys
 import numpy as np
 import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from functions.filter import filter
+
 
 char_size: tuple = {"x": 8, "y": 8}
 
 file_info: dict = {"path": None, "name": None, "extension": None}
 txt_char_set_len: int = len("■@?0Poc:. ")
 divine: float = 255 / (txt_char_set_len-1)
-img_char_set_path = "resources/chars/fillASCII.png"
+img_char_set_path = "resources/chars/ASCII.png"
 
 def image_resize(image: Image, size: tuple) -> Image:
     """Resize img.
@@ -26,27 +30,29 @@ def image_luminance(image: Image) -> np.ndarray:
     result = np.round(img_array / divine).astype(int)
     return result
 
-def img_ascii(map: np.ndarray, color_invert: bool) -> Image:
+def img_ascii(map: np.ndarray, color_invert: bool, vec = None, mag = None) -> Image:
     """Get ascii img art from brightness map.
     Args:
         map (np.ndarray): brightness map 
         color_invert (bool): Inverts order of char list for img ascii. White color of img will turn black on final img if True
     Returns:
         Image: ascii art"""
-    img_char_set: list[np.ndarray] = np.hsplit(np.array(Image.open(img_char_set_path).convert("L")), txt_char_set_len)
+    if(mag is not None and vec is not None):
+        map = np.where(mag, vec, map)
+    img_chars = Image.open(img_char_set_path).convert("L")
+    temp_len = img_chars.width / char_size['x']
+    img_char_set: list[np.ndarray] = np.hsplit(np.array(img_chars), temp_len)
     char_set: list[np.ndarray] = img_char_set[::-1] if color_invert else img_char_set
     y_size , x_size = map.shape
     final_image = np.zeros((y_size * char_size["y"], x_size * char_size["x"]), dtype=np.uint8)
     for y in range(y_size):
         y_paste = y * char_size["y"]
         for x in range(x_size):
-            if(map[y][x] == -1):
-                continue
             x_paste = x * char_size["x"]
             final_image[y_paste:y_paste+char_size["y"], x_paste:x_paste+char_size["x"]] = char_set[map[y][x]]
     return final_image
 
-def img_color_ascii(map: np.ndarray, color_invert: bool, fix_color:bool, image: Image) -> Image:
+def img_color_ascii(map: np.ndarray, color_invert: bool, fix_color:bool, image: Image, vec = None, mag = None) -> Image:
     """Get ascii img art from brightness map.
     Args:
         list (list[list[int]]): brightness map 
@@ -55,10 +61,14 @@ def img_color_ascii(map: np.ndarray, color_invert: bool, fix_color:bool, image: 
     Returns:
         Image: ascii art"""
     load = np.array(image)
+    if(mag is not None and vec is not None):
+        map = np.where(mag, vec, map)
     if(fix_color and color_invert):
         load[(map == 0) | (map == 1)] = (255,255,255)
 
-    img_char_set: list[np.ndarray] = np.hsplit(np.array(Image.open(img_char_set_path).convert("L")), txt_char_set_len)
+    img_chars = Image.open(img_char_set_path).convert("L")
+    temp_len = img_chars.width / char_size['x']
+    img_char_set: list[np.ndarray] = np.hsplit(np.array(img_chars), temp_len)
     char_set: list[np.ndarray] = img_char_set[::-1] if color_invert else img_char_set
     char_set = [np.repeat(char_array[:, :, np.newaxis], 3, axis=2) for char_array in char_set]
     char_set = char_set / np.max(char_set)
@@ -68,16 +78,16 @@ def img_color_ascii(map: np.ndarray, color_invert: bool, fix_color:bool, image: 
     for y in range(y_size):
         y_paste = y * char_size["y"]
         for x in range(x_size):
-            if(map[y][x] == -1):
-                continue
             x_paste = x * char_size["x"]
             char = char_set[map[y][x]] * load[y][x]
             final_image[y_paste:y_paste+char_size["y"], x_paste:x_paste+char_size["x"]] = char
     return final_image
 
-def convert(path,
-            color_invert: bool = False, 
-            color: bool = False, fix_color: bool = False) -> str | None:
+def convert(path, color: bool = False, edge: bool = False,
+            color_invert: bool = False, fix_color: bool = False,
+            dog_bool: bool = False, dog_value: float = 0.5,
+            preprocessing_bool: bool = False, preprocessing_value: float = 0.9,
+            sector_threshold: float = 0.25) -> str | None:
     """Convert img to ascii.
     Convert img to ascii art as img or as txt file. Saves into Result/{img file name}/img or txt file
     Args:
@@ -106,11 +116,16 @@ def convert(path,
     y_size = round(y_size / char_size["y"])
     
     image: Image = image_resize(original_image, (x_size, y_size))
+    vec = None
+    mag = None
+    if(edge):
+        vec, mag = filter(image= original_image, DoG_bool= dog_bool, DoG_threshold= dog_value, preprocessing_bool= preprocessing_bool, 
+                          preprocessing_threshold= preprocessing_value, sector_threshold= sector_threshold)
     luminance: np.ndarray = image_luminance(image)
     if(color):
-        final_image: np.ndarray = img_color_ascii(luminance, color_invert, fix_color, image)
+        final_image: np.ndarray = img_color_ascii(luminance, color_invert, fix_color, image, vec, mag)
     else:
-        final_image: np.ndarray = img_ascii(luminance, color_invert)
+        final_image: np.ndarray = img_ascii(luminance, color_invert, vec, mag)
     save: str = f"result/{file_info["name"]}{file_info["extension"]}"
     final_img = Image.fromarray(final_image)
     #final_img.save(save)
